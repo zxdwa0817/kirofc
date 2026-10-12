@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>KIRO FC 팀 짜기</title>
+<meta name="description" content="오늘 온 사람만 체크하면 실력 밸런스를 맞춰 팀을 나눠 줍니다.">
+<meta property="og:title" content="KIRO FC 팀 짜기">
+<meta property="og:description" content="오늘 온 사람 체크 → 팀 짜기 → 카톡에 붙여넣기">
+<meta property="og:type" content="website">
+<meta name="format-detection" content="telephone=no">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 모바일(카톡 인앱 브라우저) 우선 단일 컬럼 — 참석 체크 → 경기 방식 → 결과, 하단 고정 버튼 */
+:root{
+  --bg:#f3f6f2; --surface:#ffffff; --fg:#14231a; --muted:#5d6e63; --line:#d5ded7;
+  --accent:#1f7a46; --accent-ink:#ffffff; --warn:#b4471b; --warn-bg:#fbeee7; --chip:#e7efe9;
+  --t1:#1f7a46; --t2:#2457a6; --t3:#b8582a; --t4:#7a3fa0; --t5:#8a7a12; --t6:#1d8a8a;
+  --display:"Black Han Sans","IBM Plex Sans KR",system-ui,sans-serif;
+  --body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1712; --surface:#17221b; --fg:#e4ede6; --muted:#93a598; --line:#2a3a30;
+  --accent:#4cc583; --accent-ink:#06210f; --warn:#f08a5d; --warn-bg:#2e1b12; --chip:#213028;
+  --t1:#4cc583; --t2:#6e9ef0; --t3:#ef9562; --t4:#c08be6; --t5:#d8c64a; --t6:#4fd0d0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1712; --surface:#17221b; --fg:#e4ede6; --muted:#93a598; --line:#2a3a30;
+  --accent:#4cc583; --accent-ink:#06210f; --warn:#f08a5d; --warn-bg:#2e1b12; --chip:#213028;
+  --t1:#4cc583; --t2:#6e9ef0; --t3:#ef9562; --t4:#c08be6; --t5:#d8c64a; --t6:#4fd0d0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:20px 110px;display:flex;flex-direction:column;gap:16px}
+header{border-bottom:3px solid var(--fg);padding-bottom:10px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,8vw,40px);line-height:1;margin:0}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+section{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+h2{font-size:13px;letter-spacing:.08em;color:var(--muted);margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+h2 b{color:var(--fg);font-family:var(--mono);letter-spacing:0;font-size:15px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text]{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 11px;min-width:0;flex:1 1 160px}
+button{font:inherit;font-weight:500;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:9px 13px}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding:6px 8px;font-size:13px}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.warn{font-size:13px;color:var(--warn);background:var(--warn-bg);border-radius:8px;padding:8px 10px;margin:0}
+
+/* 참석 체크 그리드 */
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px}
+.att{position:relative;padding:12px 6px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--muted);font-weight:500;text-align:center;overflow-wrap:anywhere;min-height:52px}
+.att.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.att .lv{display:block;font-family:var(--mono);font-size:11px;opacity:.8;font-weight:500}
+.att .gdot{position:absolute;top:5px;right:6px;font-size:10px;font-weight:700;opacity:.85}
+
+/* 실력·명단 편집 */
+details{border-top:1px dashed var(--line);padding-top:10px}
+summary{cursor:pointer;font-size:14px;font-weight:500;list-style:none;display:flex;justify-content:space-between}
+summary::after{content:"펼치기";color:var(--muted);font-size:13px}
+details[open] summary::after{content:"접기"}
+.edit{display:flex;flex-direction:column;gap:0;margin-top:8px}
+.p{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px dashed var(--line)}
+.p:last-child{border-bottom:0}
+.nm{min-width:0;overflow-wrap:anywhere}
+.stars{display:flex}
+.stars button{padding:0;width:26px;height:28px;border:0;background:transparent;color:var(--line);font-size:18px;line-height:1}
+.stars button.on{color:var(--accent)}
+
+.groups{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.g{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:8px;background:var(--chip)}
+.g-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:13px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+
+/* 경기 방식 */
+.setting{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}
+.setting label{font-weight:500}
+.setting small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stepper button{border:0;border-radius:0;width:42px;font-size:18px;padding:7px 0}
+.stepper output{font-family:var(--mono);font-size:18px;min-width:40px;text-align:center}
+.plan{font-size:14px;background:var(--chip);border-radius:8px;padding:9px 11px;margin:0;font-variant-numeric:tabular-nums}
+.plan b{font-family:var(--mono)}
+
+/* 결과 */
+.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.team{border:1px solid var(--line);border-top:5px solid var(--tc);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.team h3{margin:0;font-family:var(--display);font-weight:400;font-size:21px;color:var(--tc);display:flex;justify-content:space-between;align-items:baseline}
+.team h3 small{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.team ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.team li{display:flex;justify-content:space-between;gap:6px;font-size:14px}
+.team li span:last-child{color:var(--muted);font-family:var(--mono);font-size:12px}
+.tag{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:5px;vertical-align:1px;background:var(--chip);color:var(--muted)}
+.sum{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.ok{font-weight:700;font-size:13px}
+
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar .in{max-width:720px;margin:0 auto;display:flex;gap:8px}
+.bar .primary{flex:1;padding:13px;font-size:16px}
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;max-width:90vw;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>KIRO <span>FC</span> 팀 짜기</h1>
+    <p class="sub">오늘 온 사람만 탭 → 팀 짜기 → 카톡에 붙여넣기</p>
+  </header>
+
+  <section>
+    <h2>오늘 참석 <b id="cnt">0명</b></h2>
+    <div class="row">
+      <button class="ghost" id="allOn">전체 선택</button>
+      <button class="ghost" id="allOff">전체 해제</button>
+    </div>
+    <div class="roster" id="roster"></div>
+    <div class="row">
+      <input type="text" id="addInput" placeholder="새 인원·게스트 이름 (쉼표로 여러 명)">
+      <button id="addBtn">추가</button>
+    </div>
+
+    <details id="dEdit">
+      <summary>실력 설정 · 명단 삭제</summary>
+      <p class="hint" style="margin-top:6px">★1~5. 팀별 실력 합계가 비슷해지도록 나눕니다.</p>
+      <div class="edit" id="edit"></div>
+    </details>
+
+    <div id="secret" hidden class="g" style="background:var(--warn-bg)">
+      <div class="g-head"><span style="color:var(--warn)">관리자 모드</span><button class="ghost" id="lock">닫기</button></div>
+      <p class="hint">분리그룹은 페이지에 들어 있어 누가 팀을 짜도 적용됩니다. 그날 참석한 사람끼리만 적용되고, 닫으면 화면·결과·복사 텍스트 어디에도 표시되지 않아요.</p>
+      <div class="groups" id="groups"></div>
+      <p class="sum" id="okmsg"></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>경기 방식</h2>
+    <div class="setting">
+      <label>팀당 인원<small>예: 6 = 6대6</small></label>
+      <div class="stepper"><button id="pMinus" aria-label="팀당 인원 줄이기">−</button><output id="per">6</output><button id="pPlus" aria-label="팀당 인원 늘리기">+</button></div>
+    </div>
+    <div class="setting">
+      <label>팀 수<small id="tAuto">참석 인원에 맞춰 자동</small></label>
+      <div class="stepper"><button id="tMinus" aria-label="팀 수 줄이기">−</button><output id="tn">2</output><button id="tPlus" aria-label="팀 수 늘리기">+</button></div>
+    </div>
+    <p class="plan" id="plan"></p>
+    <p class="warn" id="warn" hidden></p>
+  </section>
+
+  <section id="result" hidden>
+    <h2>결과 <button class="ghost" id="again">다시 섞기</button></h2>
+    <div class="teams" id="teams"></div>
+    <span class="sum" id="stat"></span>
+  </section>
+</div>
+
+<div class="bar"><div class="in">
+  <button class="primary" id="go">팀 짜기</button>
+  <button id="copy">카톡용 복사</button>
+</div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const ROSTER=["윤현철","황정환(총무)","김민규","황재호","손재성","천성준","이만기(회장)","황진섭","신재욱","이종성","박준영89","김민욱","박준영90","김광중","오명훈","강호준","박재홍","김효인","진성호","김신","박재현","백영현","장재혁","박정현","박지흠","김명규","구현우","유건민"].sort((a,b)=>a.localeCompare(b,"ko"));
+const DEFAULT = { players:ROSTER.map(name=>({name,lv:3,on:false})), per:6, teamsManual:null };
+const KEY="kirofc-team-v4";
+const RENAME={"박준영(89)":"박준영89","박준영(90)":"박준영90"};
+let S, admin=false;
+const _s="kfc·r7", _m={"kr6ksk":0,"d36z18":0,"1abvao4":0,"16pxb5i":0,"1lxg0xw":1,"19sfwaj":1,"1xe2m0l":1,"jjqzee":1};
+const _h=t=>{let x=0x811c9dc5;for(const c of _s+t){x^=c.codePointAt(0);x=Math.imul(x,16777619)>>>0}return x.toString(36)};
+const gk=name=>{const k=_m[_h(name)];return k===undefined?-1:k};
+const groupsNow=()=>{const g=[];S.players.forEach(p=>{const k=gk(p.name);if(k>=0)(g[k]=g[k]||[]).push(p.name)});return g};
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+try{localStorage.removeItem("kirofc-pref-x")}catch(e){}
+if(!S||!Array.isArray(S.players)){
+  // 이전 버전에서 실력 점수만 이어받고, 명단은 전체 인원으로 새로 시작
+  S=JSON.parse(JSON.stringify(DEFAULT));
+  try{for(const k of ["kirofc-team-v3","kirofc-team-v2"]){const old=JSON.parse(localStorage.getItem(k));if(old&&Array.isArray(old.players)){old.players.forEach(o=>{const nm=RENAME[o.name]||o.name;const p=S.players.find(q=>q.name===nm);if(p)p.lv=o.lv||3});S.per=old.per||6}localStorage.removeItem(k)}}catch(e){}
+}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+save();
+const $=id=>document.getElementById(id);
+const COLORS=["--t1","--t2","--t3","--t4","--t5","--t6"];
+const TN=["A","B","C","D","E","F","G","H"];
+
+const active=()=>S.players.filter(p=>p.on);
+const groupOf=gk;
+const autoTeams=()=>Math.max(2,Math.round(active().length/S.per)||2);
+const teamCount=()=>S.teamsManual??autoTeams();
+
+function render(){
+  // 참석 그리드
+  const r=$("roster"); r.innerHTML="";
+  S.players.forEach(p=>{
+    const b=document.createElement("button"); b.className="att"+(p.on?" on":""); b.setAttribute("aria-pressed",p.on);
+    b.textContent=p.name;
+    if(admin){const g=groupOf(p.name); if(g>=0){const d=document.createElement("span");d.className="gdot";d.textContent="분"+(g+1);b.append(d)}}
+    b.onclick=()=>{p.on=!p.on;save();render()};
+    r.append(b);
+  });
+  const n=active().length;
+  $("cnt").textContent=`${n}명 / 명단 ${S.players.length}명`;
+
+  // 실력 편집
+  const ed=$("edit"); ed.innerHTML="";
+  S.players.forEach((p,i)=>{
+    const d=document.createElement("div"); d.className="p";
+    d.innerHTML=`<span class="nm"></span><span class="stars">${[1,2,3,4,5].map(k=>`<button data-n="${k}" class="${k<=p.lv?"on":""}" aria-label="실력 ${k}">★</button>`).join("")}</span><button class="ghost">삭제</button>`;
+    d.querySelector(".nm").textContent=p.name;
+    d.querySelectorAll(".stars button").forEach(b=>b.onclick=()=>{p.lv=+b.dataset.n;save();render()});
+    const del=d.querySelector(".ghost");
+    del.onclick=()=>{
+      if(del.dataset.armed){S.players.splice(i,1);save();render()}
+      else{del.dataset.armed=1;del.textContent="한 번 더";del.style.color="var(--warn)";setTimeout(()=>{delete del.dataset.armed;del.textContent="삭제";del.style.color=""},2500)}
+    };
+    ed.append(d);
+  });
+
+  // 분리그룹 (관리자 모드에서만 그림)
+  $("secret").hidden=!admin;
+  const gs=$("groups"); gs.innerHTML="";
+  if(admin) groupsNow().forEach((g,gi)=>{
+    if(!g) return;
+    const d=document.createElement("div"); d.className="g";
+    d.innerHTML=`<div class="g-head"><span>분리그룹 ${gi+1}</span></div><div class="chips"></div>`;
+    const ch=d.querySelector(".chips");
+    g.forEach(n=>{const on=S.players.some(p=>p.name===n&&p.on);const c=document.createElement("span");c.className="chip"+(on?" on":"");c.textContent=n+(on?"":" (불참)");ch.append(c)});
+    gs.append(d);
+  });
+
+  // 경기 방식
+  const T=teamCount();
+  $("per").textContent=S.per; $("tn").textContent=T;
+  $("tAuto").textContent=S.teamsManual==null?"참석 인원에 맞춰 자동":"직접 지정함 · 자동으로 되돌리려면 팀당 인원 조정";
+  const base=Math.floor(n/T), extra=n%T;
+  $("plan").innerHTML = n<T ? `참석 ${n}명으로는 ${T}팀을 만들 수 없어요.`
+    : `참석 <b>${n}</b>명 → <b>${T}</b>팀 · 팀당 <b>${extra?`${base}~${base+1}`:base}</b>명`
+      + (base>S.per||(base===S.per&&extra)?` · ${S.per}대${S.per} 기준 남는 인원은 교체`:"")
+      + (base<S.per?` · ${S.per}명보다 적은 팀이 있어요`:"");
+  const msgs=[];
+  groupsNow().forEach((g,i)=>{if(!g)return;const c=g.filter(x=>S.players.some(p=>p.name===x&&p.on)).length;if(c>T)msgs.push(`분리그룹 ${i+1} 참석자 ${c}명 > 팀 ${T}개라 ${c-T}명은 겹칠 수밖에 없어요. 겹침이 가장 적게 나눕니다.`)});
+  $("warn").hidden=!admin||!msgs.length; $("warn").textContent=msgs.join(" ");
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function makeTeams(){
+  const act=active(), T=teamCount();
+  const gid=new Map(); act.forEach(p=>{const k=gk(p.name);if(k>=0)gid.set(p.name,k)});
+  const cap=Math.ceil(act.length/T);
+  let best=null;
+  for(let it=0;it<3000;it++){
+    const teams=Array.from({length:T},()=>({m:[],sum:0}));
+    const order=shuffle(act.slice()).sort((a,b)=>(gid.has(b.name)-gid.has(a.name))||(b.lv-a.lv));
+    for(const p of order){
+      const g=gid.get(p.name);
+      const clash=t=>g===undefined?0:t.m.filter(x=>gid.get(x.name)===g).length;
+      let c=teams.filter(t=>t.m.length<cap);
+      const mc=Math.min(...c.map(clash)); c=c.filter(t=>clash(t)===mc);
+      const ml=Math.min(...c.map(t=>t.m.length)); c=c.filter(t=>t.m.length===ml);
+      const ms=Math.min(...c.map(t=>t.sum)); c=shuffle(c.filter(t=>t.sum<=ms+(Math.random()<.3?1:0)));
+      c[0].m.push(p); c[0].sum+=p.lv;
+    }
+    const clashes=teams.reduce((s,t)=>{const k={};t.m.forEach(x=>{const g=gid.get(x.name);if(g!==undefined)k[g]=(k[g]||0)+1});return s+Object.values(k).reduce((a,v)=>a+v-1,0)},0);
+    const sums=teams.map(t=>t.sum), spread=Math.max(...sums)-Math.min(...sums);
+    const score=clashes*1000+spread*10+Math.random();
+    if(!best||score<best.score) best={teams,score,clashes,spread};
+    if(it>300&&best.spread<=1&&best.clashes===minClashes(act,T,gid)) break;
+  }
+  best.teams.forEach(t=>t.m.sort((a,b)=>b.lv-a.lv));
+  return best;
+}
+function minClashes(act,T,gid){const c={};act.forEach(p=>{const g=gid.get(p.name);if(g!==undefined)c[g]=(c[g]||0)+1});return Object.values(c).reduce((s,v)=>s+Math.max(0,v-T),0)}
+
+let last=null;
+function run(){
+  const n=active().length, T=teamCount();
+  if(n<T){toast(`참석자가 ${T}명 이상이어야 ${T}팀을 만들 수 있어요.`);return}
+  last=makeTeams();
+  draw();
+}
+run.redraw=()=>draw();
+function draw(){
+  const box=$("teams"); box.innerHTML="";
+  last.teams.forEach((t,i)=>{
+    const d=document.createElement("div"); d.className="team"; d.style.setProperty("--tc",`var(${COLORS[i%COLORS.length]})`);
+    d.innerHTML=`<h3>${TN[i]}팀 <small>${t.m.length}명</small></h3><ul></ul>`;
+    const ul=d.querySelector("ul");
+    t.m.forEach(p=>{const li=document.createElement("li");const a=document.createElement("span");a.textContent=p.name;const g=groupOf(p.name);if(admin&&g>=0){const tg=document.createElement("span");tg.className="tag";tg.textContent="분"+(g+1);a.append(tg)}li.append(a);ul.append(li)});
+    box.append(d);
+  });
+  $("stat").textContent=`실력 합계 차이 ${last.spread}`;
+  $("okmsg").textContent=groupsNow().some(g=>g&&g.length)?(last.clashes?`최근 결과: 분리그룹 겹침 ${last.clashes}명 (참석 인원상 최소)`:"최근 결과: 분리그룹 겹침 없음"):"";
+  $("okmsg").style.color=last.clashes?"var(--warn)":"var(--accent)";
+  $("result").hidden=false;
+}
+function scrollResult(){
+  $("result").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+}
+
+function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2400)}
+
+function addNames(){
+  const names=$("addInput").value.split(/[,\n]/).map(s=>s.trim()).filter(Boolean);
+  let dup=0;
+  names.forEach(x=>{const ex=S.players.find(p=>p.name===x);if(ex){ex.on=true;dup++}else S.players.push({name:x,lv:3,on:true})});
+  $("addInput").value=""; save(); render();
+  if(dup) toast("이미 명단에 있는 이름은 참석으로 체크했어요.");
+}
+$("addBtn").onclick=addNames;
+$("addInput").onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing){e.preventDefault();addNames()}};
+$("allOn").onclick=()=>{S.players.forEach(p=>p.on=true);save();render()};
+$("allOff").onclick=()=>{S.players.forEach(p=>p.on=false);save();render()};
+$("pMinus").onclick=()=>{S.per=Math.max(3,S.per-1);S.teamsManual=null;save();render()};
+$("pPlus").onclick=()=>{S.per=Math.min(11,S.per+1);S.teamsManual=null;save();render()};
+$("tMinus").onclick=()=>{S.teamsManual=Math.max(2,teamCount()-1);save();render()};
+$("tPlus").onclick=()=>{S.teamsManual=Math.min(8,teamCount()+1);save();render()};
+$("go").onclick=()=>{run();if(last)scrollResult()}; $("again").onclick=run;
+$("lock").onclick=()=>{admin=false;render();if(last)run.redraw()};
+let taps=0,tapT;
+document.querySelector("h1").addEventListener("click",()=>{taps++;clearTimeout(tapT);tapT=setTimeout(()=>taps=0,1500);if(taps>=5){taps=0;admin=!admin;render();if(last)run.redraw()}});
+
+function copyText(txt){
+  const fallback=()=>{const ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.append(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}ta.remove();toast(ok?"복사했어요. 카톡에 붙여넣으세요.":"복사가 막혀 있어요. 결과를 길게 눌러 복사해 주세요.")};
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(()=>toast("복사했어요. 카톡에 붙여넣으세요."),fallback);
+  else fallback();
+}
+$("copy").onclick=()=>{
+  if(!last){toast("먼저 팀 짜기를 눌러 주세요.");return}
+  const d=new Date(), ds=`${d.getMonth()+1}/${d.getDate()}`;
+  const txt=`⚽ KIRO FC ${ds} 팀 편성 (${active().length}명)\n\n`+last.teams.map((t,i)=>`[${TN[i]}팀] ${t.m.map(p=>p.name).join(", ")}`).join("\n");
+  copyText(txt);
+};
+render();
+</script>
+
+</body>
+</html>
